@@ -19,7 +19,7 @@ https://edwarddonner.com/2024/11/13/llm-engineering-resources/
 We will start the course by installing Ollama so you can see results immediately!
 1. Download and install Ollama from https://ollama.com noting that on a PC you might need to have administrator permissions for the install to work properly
 2. On a PC, start a Command prompt / Powershell (Press Win + R, type `cmd`, and press Enter). On a Mac, start a Terminal (Applications > Utilities > Terminal).
-3. Run `ollama run llama3.2` or for smaller machines try `ollama run llama3.2:1b`
+3. Run `ollama run llama3.2` or for smaller machines try `ollama run llama3.2:1b` - **please note** steer clear of Meta's latest model llama3.3 because at 70B parameters that's way too large for most home computers!  
 4. If this doesn't work, you may need to run `ollama serve` in another Powershell (Windows) or Terminal (Mac), and try step 3 again
 5. And if that doesn't work on your box, I've set up this on the cloud. This is on Google Colab, which will need you to have a Google account to sign in, but is free:  https://colab.research.google.com/drive/1-_f5XZPsChvfU1sJ0QqCePtIuc55LSdu?usp=sharing
 
@@ -32,8 +32,10 @@ After we do the Ollama quick project, and after I introduce myself and the cours
 Hopefully I've done a decent job of making these guides bulletproof - but please contact me right away if you hit roadblocks:
 
 - PC people please follow the instructions in [SETUP-PC.md](SETUP-PC.md)
-- Mac people please follow the instructions in [SETUP-mac.md](SETUP-mac.md)
-- Linux people, the Mac instructions should be close enough!
+- Mac people please follow the instructions in [SETUP-mac.md](SETUP-mac.md)  
+- Linux people please follow the instructions in [SETUP-linux.md](SETUP-linux.md)
+
+The are also PDF versions of the setup instructions in this folder if you'd prefer.
 
 ### An important point on API costs (which are optional! No need to spend if you don't wish)
 
@@ -52,9 +54,12 @@ You can use this as a direct replacement:
 Below is a full example:
 
 ```
+# You need to do this one time on your computer
+!ollama pull llama3.2
+
 from openai import OpenAI
 MODEL = "llama3.2"
-openai = OpenAI(base_url='http://localhost:11434/v1';, api_key='ollama')
+openai = OpenAI(base_url="http://localhost:11434/v1", api_key="ollama")
 
 response = openai.chat.completions.create(
  model=MODEL,
@@ -71,7 +76,7 @@ Follow the setup instructions above, then open the Week 1 folder and prepare for
 
 ### The most important part
 
-The mantra of the course is: the best way to learn is by **DOING**. I don't type all the code during the course; I execute it for you to see the results. You should work along with me or after each lecture, running each cell, inspecting the objects to get a detailed understanding of what's happening. Then tweak the code and make it your own. There are juicy challenges for you throughout the course. I'd love it if you wanted to push your code so I can follow along with your progress, and I can make your solutions available to others so we share in your progress. While the projects are enjoyable, they are first and foremost designed to be _educational_, teaching you business skills that can be put into practice in your work.
+The mantra of the course is: the best way to learn is by **DOING**. I don't type all the code during the course; I execute it for you to see the results. You should work along with me or after each lecture, running each cell, inspecting the objects to get a detailed understanding of what's happening. Then tweak the code and make it your own. There are juicy challenges for you throughout the course. I'd love it if you wanted to submit a Pull Request for your code (instructions [here](https://chatgpt.com/share/677a9cb5-c64c-8012-99e0-e06e88afd293)) and I can make your solutions available to others so we share in your progress; as an added benefit, you'll be recognized in GitHub for your contribution to the repo. While the projects are enjoyable, they are first and foremost designed to be _educational_, teaching you business skills that can be put into practice in your work.
 
 ## Starting in Week 3, we'll also be using Google Colab for running with GPUs
 
