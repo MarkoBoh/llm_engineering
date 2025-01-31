@@ -44,8 +44,13 @@ COLOR_MAP = {"red":RED, "orange": YELLOW, "green": GREEN}
 
 # Log in to HuggingFace
 
-#hf_token = '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'
-#login(hf_token, add_to_git_credential=True)
+# Log in to HuggingFace
+from dotenv import load_dotenv
+load_dotenv()
+
+os.environ['HF_TOKEN'] = os.getenv('HF_TOKEN', 'your-key-if-not-using-env')
+login(os.environ['HF_TOKEN'], add_to_git_credential=True)
+
 
 def investigate_tokenizer(model_name):
   print("Investigating tokenizer for", model_name)
