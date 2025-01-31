@@ -72,60 +72,32 @@ from pathlib import Path
 from transformers import AutoModelForCausalLM, AutoTokenizer, AutoConfig
 import torch
 
-def load_model(model_path=LLAMA_3_1):
+def load_model(model_path='..\\week8\\base_model_jan31.pkl'):
+    tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL, trust_remote_code=True)
     try:
-        """
-         # Configure 4-bit quantization
-        quantization_config = BitsAndBytesConfig(
-            load_in_4bit=True,
-            bnb_4bit_compute_dtype=torch.float16,
-            bnb_4bit_quant_type="nf4",
-            bnb_4bit_use_double_quant=True
-        )
+        # Validate path
+        model_path = Path(model_path)
+        if not model_path.exists():
+            raise FileNotFoundError(f"Model file not found at {model_path}")
 
-        # Load tokenizer
-        tokenizer = AutoTokenizer.from_pretrained(
-            model_path,
-            trust_remote_code=True
-        )
-
-        # Load model with auto device mapping
-        model = AutoModelForCausalLM.from_pretrained(
-            model_path,
-            device_map='auto',
-            quantization_config=quantization_config,
-            torch_dtype=torch.float16,
-            low_cpu_mem_usage=True
-        )
-        """
-
-        ## nalozi 16 GB model
-        # Load tokenizer first with auto detection
-        tokenizer = AutoTokenizer.from_pretrained(
-            model_path,
-            trust_remote_code=True,
-            use_fast=True
-        )
-
-        # Load configuration
-        config = AutoConfig.from_pretrained(model_path)
-        
-        # Load model with configuration
-        model = AutoModelForCausalLM.from_pretrained(
-            model_path,
-            config=config,
-            torch_dtype=torch.float16,
-            device_map="auto",
-            low_cpu_mem_usage=True
-        )
-        
-        if not hasattr(model, 'generate'):
-            raise ValueError("Model doesn't have generation capability")
+        # Load model with safety checks
+        with open(model_path, 'rb') as f:
+            # Basic security check
+            if os.path.getsize(model_path) > 10 * 1024 * 1024 * 1024:  # 10GB limit
+                raise ValueError("File size exceeds safety limit")
             
-        return model, tokenizer
-        
+            base_model = pickle.load(f)
+            
+            # Validate loaded model
+            if not hasattr(base_model, 'forward'):
+                raise ValueError("Loaded object does not appear to be a valid model")
+            
+            return base_model, tokenizer
+
+    except (pickle.UnpicklingError, ModuleNotFoundError) as e:
+        raise RuntimeError(f"Error loading model: {str(e)}")
     except Exception as e:
-        raise RuntimeError(f"Failed to load model: {str(e)}")
+        raise RuntimeError(f"Unexpected error: {str(e)}")
 
 # Initialize model and tokenizer
 base_model, tokenizer = load_model()

@@ -46,15 +46,17 @@ COLOR_MAP = {"red":RED, "orange": YELLOW, "green": GREEN}
 hf_token = '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'
 login(hf_token, add_to_git_credential=True)
 
+tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL, trust_remote_code=True)
+
 def investigate_tokenizer(model_name):
-  print("Investigating tokenizer for", model_name)
-  tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
-  for number in [0, 1, 10, 100, 999, 1000]:
-    tokens = tokenizer.encode(str(number), add_special_tokens=False)
-    print(f"The tokens for {number}: {tokens}")
+    print("Investigating tokenizer for", model_name)
+    tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
+    for number in [0, 1, 10, 100, 999, 1000]:
+        tokens = tokenizer.encode(str(number), add_special_tokens=False)
+        print(f"The tokens for {number}: {tokens}")
 
 
-    # Now we will try this with each model: LLAMA_3_1, QWEN_2_5, GEMMA_2, PHI_3
+# Now we will try this with each model: LLAMA_3_1, QWEN_2_5, GEMMA_2, PHI_3
 
 investigate_tokenizer(LLAMA_3_1)
 
@@ -62,31 +64,39 @@ dataset = load_dataset(DATASET_NAME)
 train = dataset['train']
 test = dataset['test']
 
+def model_gen(model_name=BASE_MODEL, device_map=None):
+    quantization_config = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_compute_dtype=torch.float16,
+            bnb_4bit_quant_type="nf4",
+            bnb_4bit_use_double_quant=True
+        )
 
-try:
-    # Load model with memory optimizations
-    base_model = AutoModelForCausalLM.from_pretrained(
-        model_name,
-        device_map=device_map,
-        torch_dtype=torch.float16,  # Use fp16 for memory efficiency
-        llm_int8_enable_fp32_cpu_offload=True,  # Enable CPU offloading
-        low_cpu_mem_usage=True
-    )
+    try:
+        # Load model with memory optimizations
+        base_model = AutoModelForCausalLM.from_pretrained(
+            model_name,
+            device_map=device_map,
+            torch_dtype=torch.float16,  # Use fp16 for memory efficiency
+            quantization_config=quantization_config,
+         #   llm_int8_enable_fp32_cpu_offload=True,  # Enable CPU offloading
+            low_cpu_mem_usage=True
+        )
     
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
+  ##      tokenizer = AutoTokenizer.from_pretrained(model_name)
     
-    # Save the model
-    with open('base_model.pkl', 'wb') as file:
-        pickle.dump(base_model, file)
+        # Save the model
+        with open('base_model_jan31.pkl', 'wb') as file:
+            pickle.dump(base_model, file)
 
-except Exception as e:
-    print(f"Error loading model: {str(e)}")
-    print("Please ensure you have enough GPU memory or try reducing model size")
+    except Exception as e:
+        print(f"Error loading model: {str(e)}")
+        print("Please ensure you have enough GPU memory or try reducing model size")
 
+    print(f"Memory footprint: {base_model.get_memory_footprint() / 1e9:.1f} GB")
+    return base_model
 
-
-
-print(f"Memory footprint: {base_model.get_memory_footprint() / 1e9:.1f} GB")
+base_model_tmp = model_gen()
 
 def extract_price(s):
     if "Price is $" in s:
@@ -97,11 +107,12 @@ def extract_price(s):
     return 0
 
 
+
 def model_predict(prompt):
     set_seed(42)
     inputs = tokenizer.encode(prompt, return_tensors="pt").to("cuda")
     attention_mask = torch.ones(inputs.shape, device="cuda")
-    outputs = base_model.generate(inputs, max_new_tokens=4, attention_mask=attention_mask, num_return_sequences=1)
+    outputs = base_model_tmp.generate(inputs, max_new_tokens=4, attention_mask=attention_mask, num_return_sequences=1)
     response = tokenizer.decode(outputs[0])
     return extract_price(response)
 
