@@ -44,8 +44,8 @@ COLOR_MAP = {"red":RED, "orange": YELLOW, "green": GREEN}
 
 # Log in to HuggingFace
 
-hf_token = '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'
-login(hf_token, add_to_git_credential=True)
+#hf_token = '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'
+#login(hf_token, add_to_git_credential=True)
 
 def investigate_tokenizer(model_name):
   print("Investigating tokenizer for", model_name)

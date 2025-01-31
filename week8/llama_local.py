@@ -43,8 +43,8 @@ COLOR_MAP = {"red":RED, "orange": YELLOW, "green": GREEN}
 
 # Log in to HuggingFace
 
-hf_token = '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'
-login(hf_token, add_to_git_credential=True)
+#hf_token = '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'
+#login(hf_token, add_to_git_credential=True)
 
 tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL, trust_remote_code=True)
 
