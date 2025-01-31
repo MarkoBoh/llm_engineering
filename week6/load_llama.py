@@ -74,6 +74,32 @@ import torch
 
 def load_model(model_path=LLAMA_3_1):
     try:
+        """
+         # Configure 4-bit quantization
+        quantization_config = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_compute_dtype=torch.float16,
+            bnb_4bit_quant_type="nf4",
+            bnb_4bit_use_double_quant=True
+        )
+
+        # Load tokenizer
+        tokenizer = AutoTokenizer.from_pretrained(
+            model_path,
+            trust_remote_code=True
+        )
+
+        # Load model with auto device mapping
+        model = AutoModelForCausalLM.from_pretrained(
+            model_path,
+            device_map='auto',
+            quantization_config=quantization_config,
+            torch_dtype=torch.float16,
+            low_cpu_mem_usage=True
+        )
+        """
+
+        ## nalozi 16 GB model
         # Load tokenizer first with auto detection
         tokenizer = AutoTokenizer.from_pretrained(
             model_path,
@@ -138,7 +164,7 @@ def model_predict(prompt):
 
 class Tester:
 
-    def __init__(self, predictor, data, title=None, size=250):
+    def __init__(self, predictor, data, title=None, size=25): #original size=250
         self.predictor = predictor
         self.data = data
         self.title = title or predictor.__name__.replace("_", " ").title()
@@ -176,7 +202,8 @@ class Tester:
     def chart(self, title):
         max_error = max(self.errors)
         plt.figure(figsize=(12, 8))
-        max_val = max(max(self.truths), max(self.guesses))
+        #max_val = max(max(self.truths), max(self.guesses))
+        max_val = 200
         plt.plot([0, max_val], [0, max_val], color='deepskyblue', lw=2, alpha=0.6)
         plt.scatter(self.truths, self.guesses, s=3, c=self.colors)
         plt.xlabel('Ground Truth')
@@ -196,6 +223,7 @@ class Tester:
     def run(self):
         self.error = 0
         for i in range(self.size):
+        #for i in range(5):
             self.run_datapoint(i)
         self.report()
 
